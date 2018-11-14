@@ -689,6 +689,17 @@ abstract class FilterData{
 		}
 	}
 	
+	//method to return HockeyPlayer object that meets search condition
+	public static HockeyPlayer playerSelection(ArrayList<HockeyPlayer> roster, Predicate<HockeyPlayer> predicate){
+		HockeyPlayer hp = new HockeyPlayer(null, null, null, null);
+		for(HockeyPlayer player : roster){
+			if(predicate.test(player)){
+				hp = player;	
+			}
+		}
+		return hp;
+	}
+	
 	//method to filter roster by name
 	public static ArrayList<String> printNamesInRoster(ArrayList<HockeyPlayer> roster){
 		ArrayList<String> players = new ArrayList<String>();
@@ -963,7 +974,29 @@ class Output implements StatsTracking{
 		menuOptions(playersArray, false);
 		int choice = userChoice();
 		if(choice <= playersArray.length && choice > 0){
-			System.out.println("You selected: " + playersArray[choice-1] + ".  The output of his Current-Season and Washington Capitals Career Stats are IN PROGRESS.");
+			Roster r = new Roster(RosterData.roster2017());
+			HockeyPlayer sel = FilterData.playerSelection(r.getRoster(), h -> h.isLastName(playersArray[choice-1]));
+			System.out.println("Player: " + sel.getLastName());
+			System.out.println("Position: " + sel.getPosition());
+			System.out.println("\n\t*** 2017 - 2018 Regular Season Stats ***");
+			if(sel.getPosition().equals("Goalie")){
+				Goalie g = (Goalie)sel;
+				System.out.println("\t\tShots Against: " + g.getStats().getShotsAgainst());
+				System.out.println("\t\tGoals Against: " + g.getStats().getGoalsAgainst());
+				System.out.println("\t\tSaves: " + g.getStats().getSaves());
+				System.out.println("\t\tSave Percentage: " + g.getStats().getSavePercentage());
+			}
+			else{
+				Skater s = (Skater)sel;
+				System.out.println("\t\tGoals: " + s.getStats().getGoals());
+				System.out.println("\t\tAssists: " + s.getStats().getAssists());
+				System.out.println("\t\tPoints: " + s.getStats().getPoints());
+				System.out.println("\t\t+/-: " + s.getStats().getPlusMinus());
+				System.out.println("\t\tShots: " + s.getStats().getShots());
+				System.out.println("\t\tShooting Percentage: " + s.getStats().getShootingPercentage());
+			}
+			System.out.println("\n\t*** Washington Capitals Career Stats ***");
+			System.out.println("\t\tIN PROGRESS...");
 		}
 		else if(choice == (playersArray.length + 1)){
 			System.out.print("  You selected: EXIT");

@@ -807,7 +807,7 @@ class Roster{
 	}
 	
 	//method to print roster by position w/out lambda expressions
-	public void printRoster(ArrayList<HockeyPlayer> roster){
+	public void printRoster(){
 		String[] positions = {"Forward, LW", "Forward, C", "Forward, RW", "Defense", "Goalie"};
 		System.out.println("Roster:\n");
 		try{
@@ -839,6 +839,130 @@ class Roster{
 		for(HockeyPlayer o : roster){
 			System.out.println(o.printGeneralInfo());	
 		}
+	}
+	
+	//method to filter roster by name
+	public ArrayList<String> printNamesInRoster(){
+		ArrayList<String> players = new ArrayList<String>();
+		try{
+			//this looping structure retrieves players from season's roster
+			players.add(roster.get(0).getLastName());
+			for(int i=1; i< roster.size(); i++){
+				players.add(roster.get(i).getLastName());	
+			}
+		}
+		catch(NullPointerException np){
+			System.out.println("Null Pointer Exception: " + np);	
+		}
+		catch(Exception e){
+			System.out.println("Exception: " + e);	
+		}
+		return players;
+	}
+	
+	//method to filter roster by position
+	public void printLambdaRoster(){
+		System.out.println("Players Grouped by Position: ");
+		try{
+			//this looping structure retrieves available positions from season's roster
+			ArrayList<String> positions = new ArrayList<String>();
+			positions.add(roster.get(0).getPosition());
+			for(int i=1; i< roster.size(); i++){
+				if(positions.contains(roster.get(i).getPosition() )== false){
+					positions.add(roster.get(i).getPosition());	
+				}
+			}
+			for(String position : positions){
+				System.out.print(position.toUpperCase() + ": ");
+				FilterData.print(roster, h -> h.isPosition(position));
+			}
+		}
+		catch(NullPointerException np){
+			System.out.println("Null Pointer Exception: " + np);	
+		}
+		catch(Exception e){
+			System.out.println("Exception: " + e);	
+		}
+	}
+	
+	//method to filter skaters who shoot left/right
+	public void printLambdaShoots(){
+		System.out.println("Skaters Grouped by Shoots L/R: ");
+		try{
+			//this looping structure retrieves available shooting options from season's roster
+			ArrayList<String> shoots = new ArrayList<String>();
+			shoots.add(roster.get(0).getShoots());
+			for(int i=1; i< roster.size(); i++){
+				if(shoots.contains(roster.get(i).getShoots() )== false){
+					shoots.add(roster.get(i).getShoots());	
+				}
+			}
+			for(String shot : shoots){
+				System.out.print("SHOOTS " + shot.toUpperCase() +":  ");
+				FilterData.print(roster, h -> h.isShot(shot));
+			}
+		}
+		catch(NullPointerException np){
+			System.out.println("Null Pointer Exception: " + np);	
+		}
+		catch(Exception e){
+			System.out.println("Exception: " + e);	
+		}
+	}	
+	
+	//method to filter players by country of birth
+	public void printLambdaBirthplaces(){
+		System.out.println("Players Grouped by Country of Birth: ");
+		try{
+			//this looping structure retrieves available birthplaces from season's roster
+			ArrayList<String> bp = new ArrayList<String>();
+			bp.add(roster.get(0).getBirthplace());
+			for(int i=1; i< roster.size(); i++){
+				if(bp.contains(roster.get(i).getBirthplace() )== false){
+					bp.add(roster.get(i).getBirthplace());	
+				}
+			}
+			for(String country: bp){
+				System.out.print("BORN IN " + country.toUpperCase() + ":  ");
+				FilterData.print(roster, h -> h.isBornHere(country));
+			}
+		}
+		catch(NullPointerException np){
+			System.out.println("Null Pointer Exception: " + np);	
+		}
+		catch(Exception e){
+			System.out.println("Exception: " + e);	
+		}
+	}
+	
+	//method to filter skater-specific stats
+	public ArrayList<Skater> printSkaterStat(String[] statOptions, int indexOfStat){
+		System.out.println("Skater's " + statOptions[indexOfStat] + ": ");
+		ArrayList<Skater> unsortedStat = new ArrayList<Skater>();
+			for(HockeyPlayer player : getRoster()){
+				if(player.isPosition("Defense") || player.isPosition("Forward")){
+					Skater skater = (Skater)player;
+					skater.setSkaterStatsIndex(indexOfStat);
+					unsortedStat.add(skater);
+				}
+			}
+		Collections.sort(unsortedStat);
+		return unsortedStat;
+	}
+	
+	//method to filter goalie-specific stats
+	public ArrayList<Goalie> printGoalieStat(String[] statOptions, int indexOfStat){
+		System.out.println("Goalie's " + statOptions[indexOfStat] + ": ");
+		ArrayList<Goalie> unsortedStat = new ArrayList<Goalie>();
+			for(HockeyPlayer player : getRoster()){
+				if(player.isPosition("Goalie")){
+					Goalie goalie = (Goalie)player;
+					goalie.setGoalieStatsIndex(indexOfStat);
+					unsortedStat.add(goalie);
+				}
+			}
+		Collections.sort(unsortedStat);
+		return unsortedStat;
 	}
 }
 
@@ -883,180 +1007,23 @@ abstract class FilterData{
 		return hp;
 	}
 	
-	//method to filter roster by name
-	public static ArrayList<String> printNamesInRoster(ArrayList<HockeyPlayer> roster){
-		ArrayList<String> players = new ArrayList<String>();
-		try{
-			//this looping structure retrieves players from season's roster
-			players.add(roster.get(0).getLastName());
-			for(int i=1; i< roster.size(); i++){
-				players.add(roster.get(i).getLastName());	
+	public static void seasonStats(ArrayList<HockeyPlayer> seasonRoster, String[] playersArray, String timePeriod, int choice){
+		Roster r = new Roster(seasonRoster);
+		if(r.isInRoster(playersArray[choice-1], seasonRoster) == true){
+			HockeyPlayer p = FilterData.playerSelection(r.getRoster(), h -> h.isLastName(playersArray[choice-1]));
+			if(p.getPosition().equals("Goalie")){
+				Goalie g = (Goalie)p;
+				System.out.println("\t\t" + timePeriod + ": Games Played: " + g.getStats().getGamesPlayed() + "\tWins: " + g.getStats().getWins() + "\tShots Against: " + g.getStats().getShotsAgainst() + "\tGoals Against: " + g.getStats().getGoalsAgainst() + 
+				"\tSaves: " + g.getStats().getSaves() + "\tSave %: " + g.getStats().getSavePercentage() + "\tAvg Wins/GP: " + g.getStats().getAvgWinsGP());
 			}
-		}
-		catch(NullPointerException np){
-			System.out.println("Null Pointer Exception: " + np);	
-		}
-		catch(Exception e){
-			System.out.println("Exception: " + e);	
-		}
-		return players;
-	}
-	
-	//method to filter roster by position
-	public static void printLambdaRoster(ArrayList<HockeyPlayer> roster){
-		System.out.println("Players Grouped by Position: ");
-		try{
-			//this looping structure retrieves available positions from season's roster
-			ArrayList<String> positions = new ArrayList<String>();
-			positions.add(roster.get(0).getPosition());
-			for(int i=1; i< roster.size(); i++){
-				if(positions.contains(roster.get(i).getPosition() )== false){
-					positions.add(roster.get(i).getPosition());	
-				}
+			else{
+				Skater s = (Skater)p;
+				System.out.println("\t\t" + timePeriod + ": Games Played: " + s.getStats().getGamesPlayed() + "\tGoals: " + s.getStats().getGoals() + "\tAssists: " + s.getStats().getAssists() +
+				"\tPts: " + s.getStats().getPoints() + "\t+/-: " + s.getStats().getPlusMinus() + "\tShots: " + s.getStats().getShots() + "\tShooting %: " + s.getStats().getShootingPercentage() +
+				"\tAvg Pts/GP: " + s.getStats().getAvgPtsGP());
 			}
-			for(String position : positions){
-				System.out.print(position.toUpperCase() + ": ");
-				print (roster, h -> h.isPosition(position));
-			}
-		}
-		catch(NullPointerException np){
-			System.out.println("Null Pointer Exception: " + np);	
-		}
-		catch(Exception e){
-			System.out.println("Exception: " + e);	
 		}
 	}
-	
-	//method to filter players by country of birth
-	public static void printLambdaBirthplaces(ArrayList<HockeyPlayer> roster){
-		System.out.println("Players Grouped by Country of Birth: ");
-		try{
-			//this looping structure retrieves available birthplaces from season's roster
-			ArrayList<String> bp = new ArrayList<String>();
-			bp.add(roster.get(0).getBirthplace());
-			for(int i=1; i< roster.size(); i++){
-				if(bp.contains(roster.get(i).getBirthplace() )== false){
-					bp.add(roster.get(i).getBirthplace());	
-				}
-			}
-			for(String country: bp){
-				System.out.print("BORN IN " + country.toUpperCase() + ":  ");
-				print (roster, h -> h.isBornHere(country));
-			}
-		}
-		catch(NullPointerException np){
-			System.out.println("Null Pointer Exception: " + np);	
-		}
-		catch(Exception e){
-			System.out.println("Exception: " + e);	
-		}
-	}
-	
-	//method to filter skaters who shoot left/right
-	public static void printLambdaShoots(ArrayList<HockeyPlayer> roster){
-		System.out.println("Skaters Grouped by Shoots L/R: ");
-		try{
-			//this looping structure retrieves available shooting options from season's roster
-			ArrayList<String> shoots = new ArrayList<String>();
-			shoots.add(roster.get(0).getShoots());
-			for(int i=1; i< roster.size(); i++){
-				if(shoots.contains(roster.get(i).getShoots() )== false){
-					shoots.add(roster.get(i).getShoots());	
-				}
-			}
-			for(String shot : shoots){
-				System.out.print("SHOOTS " + shot.toUpperCase() +":  ");
-				print(roster, h -> h.isShot(shot));
-			}
-		}
-		catch(NullPointerException np){
-			System.out.println("Null Pointer Exception: " + np);	
-		}
-		catch(Exception e){
-			System.out.println("Exception: " + e);	
-		}
-	}
-	
-	//method to filter skater-specific stats
-	public static void printSkaterStat(String[] statOptions, int indexOfStat, ArrayList<HockeyPlayer> roster){
-		System.out.println("Skater's " + statOptions[indexOfStat] + ": ");
-		ArrayList<Skater> unsortedStat = new ArrayList<Skater>();
-			for(HockeyPlayer player : roster){
-				if(player.isPosition("Defense") || player.isPosition("Forward")){
-					Skater skater = (Skater)player;
-					skater.setSkaterStatsIndex(indexOfStat);
-					unsortedStat.add(skater);
-				}
-			}
-			Collections.sort(unsortedStat);
-			for(Skater s : unsortedStat){
-				switch(indexOfStat){
-					case 0: 
-						System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getGoals()); 
-						break;
-					case 1: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getAssists()); 
-						break;
-					case 2: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getPoints());
-						break;
-					case 3: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getPlusMinus());
-						break;
-					case 4: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getShots());
-						break;
-					case 5: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getShootingPercentage()); 
-						break;
-					case 6: System.out.println(s + "'s " + statOptions[indexOfStat] + ": " + s.getStats().getAvgPtsGP()); 
-						break;
-				}
-			}
-	}
-	
-	//method to filter goalie-specific stats
-	public static void printGoalieStat(String[] statOptions, int indexOfStat, ArrayList<HockeyPlayer> roster){
-		System.out.println("Goalie's " + statOptions[indexOfStat] + ": ");
-		ArrayList<Goalie> unsortedStat = new ArrayList<Goalie>();
-			for(HockeyPlayer player : roster){
-				if(player.isPosition("Goalie")){
-					Goalie goalie = (Goalie)player;
-					goalie.setGoalieStatsIndex(indexOfStat);
-					unsortedStat.add(goalie);
-				}
-			}
-			Collections.sort(unsortedStat);
-			for(Goalie g : unsortedStat){
-				switch(indexOfStat){
-					case 0: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getWins()); 
-						break;
-					case 1: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getShotsAgainst()); 
-						break;
-					case 2: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getGoalsAgainst());
-						break;
-					case 3: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getSaves()); 
-						break;
-					case 4: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getSavePercentage() + " -OR- " + g.getStats().getSavePercentage()/100.00 + " (the latter because this stat sometimes reported like this...)"); 
-						break;
-					case 5: System.out.println(g + "'s " + statOptions[indexOfStat] + ": " + g.getStats().getAvgWinsGP()); 
-						break;
-				}
-			}
-	}
-	
-		public static void seasonStats(ArrayList<HockeyPlayer> seasonRoster, String[] playersArray, String timePeriod, int choice){
-			Roster r = new Roster(seasonRoster);
-			if(r.isInRoster(playersArray[choice-1], seasonRoster) == true){
-				HockeyPlayer p = FilterData.playerSelection(r.getRoster(), h -> h.isLastName(playersArray[choice-1]));
-				if(p.getPosition().equals("Goalie")){
-					Goalie g = (Goalie)p;
-					System.out.println("\t\t" + timePeriod + ": Games Played: " + g.getStats().getGamesPlayed() + "\tWins: " + g.getStats().getWins() + "\tShots Against: " + g.getStats().getShotsAgainst() + "\tGoals Against: " + g.getStats().getGoalsAgainst() + 
-					"\tSaves: " + g.getStats().getSaves() + "\tSave %: " + g.getStats().getSavePercentage() + "\tAvg Wins/GP: " + g.getStats().getAvgWinsGP());
-				}
-				else{
-					Skater s = (Skater)p;
-					System.out.println("\t\t" + timePeriod + ": Games Played: " + s.getStats().getGamesPlayed() + "\tGoals: " + s.getStats().getGoals() + "\tAssists: " + s.getStats().getAssists() +
-					"\tPts: " + s.getStats().getPoints() + "\t+/-: " + s.getStats().getPlusMinus() + "\tShots: " + s.getStats().getShots() + "\tShooting %: " + s.getStats().getShootingPercentage() +
-					"\tAvg Pts/GP: " + s.getStats().getAvgPtsGP());
-				}
-			}
-		}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1181,13 +1148,13 @@ class Output implements StatsTracking{
 	public void selectPlayerMenu(){
 		System.out.println("\n********************************************************************");
 		System.out.println("WELCOME TO PLAYER SELECTION FOR HOCKEY DATA ANALYTICS!");
-		ArrayList<String> players = new ArrayList<String>(FilterData.printNamesInRoster(RosterData.roster2017()));
+		Roster r = new Roster(RosterData.roster2017());
+		ArrayList<String> players = new ArrayList<String>(r.printNamesInRoster());
 		Collections.sort(players);
 		String[] playersArray = players.toArray(new String[players.size()]);
 		menuOptions(playersArray, false);
 		int choice = userChoice();
 		if(choice <= playersArray.length && choice > 0){
-			Roster r = new Roster(RosterData.roster2017());
 			HockeyPlayer sel = FilterData.playerSelection(r.getRoster(), h -> h.isLastName(playersArray[choice-1]));
 			System.out.println("Player: " + sel.getLastName());
 			System.out.println("Position: " + sel.getPosition());
@@ -1207,7 +1174,7 @@ class Output implements StatsTracking{
 				System.out.println("\t\t+/-: " + s.getStats().getPlusMinus());
 				System.out.println("\t\tShots: " + s.getStats().getShots());
 				System.out.println("\t\tShooting Percentage: " + s.getStats().getShootingPercentage());
-				System.out.println("\t\tShooting Percentage: " + s.getStats().getAvgPtsGP());
+				System.out.println("\t\tAverage Points Per Game: " + s.getStats().getAvgPtsGP());
 			}
 			System.out.println("\n\t*** WSH Career Stats ***");
 			FilterData.seasonStats(RosterData.roster2017(), playersArray, "2017 - 2018 Regular Season", choice);
@@ -1256,13 +1223,13 @@ class Output implements StatsTracking{
 		menuOptions(StatsTracking.teamDetails, true);
 		int choice = userChoice();
 		switch(choice){
-		case 1: r.printRoster(r.getRoster());
+		case 1: r.printRoster();
 			break;
-		case 2: FilterData.printLambdaRoster(r.getRoster());
+		case 2: r.printLambdaRoster();
 			break;
-		case 3: FilterData.printLambdaShoots(r.getRoster());
+		case 3: r.printLambdaShoots();
 			break;
-		case 4: FilterData.printLambdaBirthplaces(r.getRoster());
+		case 4: r.printLambdaBirthplaces();
 			break;
 		case 5: selectYearMenu();
 			break;
@@ -1276,25 +1243,36 @@ class Output implements StatsTracking{
 	}
 	
 	public void skatersStatsMenu(){
+		ArrayList<Skater> skaterStat = null;
 		Roster r = new Roster(getSeasonRoster());
 		System.out.println("\n********************************************************************");
 		System.out.println("WELCOME TO SKATER DATA ANALYTICS for the " + getSeason() + "!");
 		menuOptions(StatsTracking.skaterStats, true);
 		int choice = userChoice();
+		if(choice <= StatsTracking.skaterStats.length){
+			skaterStat = r.printSkaterStat(StatsTracking.skaterStats, (choice-1));
+		}
 		switch(choice){
-		case 1: FilterData.printSkaterStat(StatsTracking.skaterStats, 0, r.getRoster());
+		case 1: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : " + sk.getStats().getGoals()); 
 			break;
-		case 2: FilterData.printSkaterStat(StatsTracking.skaterStats, 1, r.getRoster());
+		case 2: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : " + sk.getStats().getAssists()); 
 			break;
-		case 3: FilterData.printSkaterStat(StatsTracking.skaterStats, 2, r.getRoster());
+		case 3: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : "  + sk.getStats().getPoints()); 
 			break;
-		case 4: FilterData.printSkaterStat(StatsTracking.skaterStats, 3, r.getRoster());
+		case 4: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : "  + sk.getStats().getPlusMinus()); 
 			break;
-		case 5: FilterData.printSkaterStat(StatsTracking.skaterStats, 4, r.getRoster());
+		case 5: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : "  + sk.getStats().getShots()); 
 			break;
-		case 6: FilterData.printSkaterStat(StatsTracking.skaterStats, 5, r.getRoster());
+		case 6: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : "  + sk.getStats().getShootingPercentage()); 
 			break;
-		case 7: FilterData.printSkaterStat(StatsTracking.skaterStats, 6, r.getRoster());
+		case 7: for(Skater sk : skaterStat)
+			System.out.println(sk + "'s " + StatsTracking.skaterStats[choice-1] + " : "  + sk.getStats().getAvgPtsGP()); 
 			break;
 		case 8: selectYearMenu();
 			break;
@@ -1308,23 +1286,33 @@ class Output implements StatsTracking{
 	}
 	
 	public void goaliesStatsMenu(){
+		ArrayList<Goalie> goalieStat = null;
 		Roster r = new Roster(getSeasonRoster());
 		System.out.println("\n********************************************************************");
 		System.out.println("WELCOME TO GOALIE DATA ANALYTICS for the " + getSeason() + "!");
 		menuOptions(StatsTracking.goalieStats, true);
 		int choice = userChoice();
+		if(choice <= StatsTracking.goalieStats.length){
+			goalieStat = r.printGoalieStat(StatsTracking.goalieStats, (choice-1));
+		}
 		switch(choice){
-		case 1: FilterData.printGoalieStat(StatsTracking.goalieStats, 0, r.getRoster());
+		case 1: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getWins()); 
+			break;	
+		case 2: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getShotsAgainst()); 
+			break;	
+		case 3: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getGoalsAgainst()); 
 			break;
-		case 2: FilterData.printGoalieStat(StatsTracking.goalieStats, 1, r.getRoster());
+		case 4: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getSaves()); 
 			break;
-		case 3: FilterData.printGoalieStat(StatsTracking.goalieStats, 2, r.getRoster());
+		case 5: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getSavePercentage()); 
 			break;
-		case 4: FilterData.printGoalieStat(StatsTracking.goalieStats, 3, r.getRoster());
-			break;
-		case 5: FilterData.printGoalieStat(StatsTracking.goalieStats, 4, r.getRoster());
-			break;
-		case 6: FilterData.printGoalieStat(StatsTracking.goalieStats, 5, r.getRoster());
+		case 6: for(Goalie g : goalieStat)
+			System.out.println(g + "'s " + StatsTracking.goalieStats[choice-1] + " : " + g.getStats().getAvgWinsGP()); 
 			break;
 		case 7: selectYearMenu();
 			break;
